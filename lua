@@ -745,6 +745,14 @@ register("queue_on_teleport", {"queueonteleport"}, function()
     return "fully supported"
 end)
 
+register("clearteleportqueue", {"clear_teleport_queue", "clearqueueonteleport"}, function()
+    assert(clearteleportqueue ~= nil, "clearteleportqueue is nil")
+    assert(type(clearteleportqueue) == "function", "clearteleportqueue is not a function")
+    local ok = pcall(clearteleportqueue)
+    assert(ok, "clearteleportqueue threw an error when called")
+    return "fully supported"
+end)
+
 register("request", {"http.request", "http_request"}, function()
     assert(request ~= nil, "request is nil")
     assert(type(request) == "function", "request is not a function")
@@ -1060,6 +1068,145 @@ register("makewritable", {}, function()
     makewritable(object)
     object.value = 2
     assert(object.value == 2, "did not make the table writable")
+    return "fully supported"
+end)
+
+register("getproximitypromptduration", {}, function()
+    assert(getproximitypromptduration ~= nil, "getproximitypromptduration is nil")
+    assert(type(getproximitypromptduration) == "function", "getproximitypromptduration is not a function")
+    local prompt = Instance.new("ProximityPrompt")
+    prompt.HoldDuration = 3
+    local duration = getproximitypromptduration(prompt)
+    assert(type(duration) == "number", "did not return a number (got " .. type(duration) .. ")")
+    assert(duration == 3, "did not return the correct duration (got " .. tostring(duration) .. ")")
+    prompt:Destroy()
+    return "fully supported"
+end)
+
+register("setproximitypromptduration", {}, function()
+    assert(setproximitypromptduration ~= nil, "setproximitypromptduration is nil")
+    assert(type(setproximitypromptduration) == "function", "setproximitypromptduration is not a function")
+    local prompt = Instance.new("ProximityPrompt")
+    setproximitypromptduration(prompt, 99)
+    assert(getproximitypromptduration(prompt) == 99, "did not set the duration")
+    assert(prompt.HoldDuration == 99, "did not set the HoldDuration property")
+    prompt:Destroy()
+    return "fully supported"
+end)
+
+register("getbspval", {}, function()
+    assert(getbspval ~= nil, "getbspval is nil")
+    assert(type(getbspval) == "function", "getbspval is not a function")
+    local result = getbspval(workspace.Terrain, "SmoothGrid", true)
+    assert(type(result) == "string", "did not return a string")
+    assert(#result > 0, "returned an empty string")
+    return "fully supported"
+end)
+
+register("getpcd", {"getpcdprop"}, function()
+    assert(getpcd ~= nil, "getpcd is nil")
+    assert(type(getpcd) == "function", "getpcd is not a function")
+    local hash, data = getpcd(Instance.new("UnionOperation"))
+    assert(type(hash) == "string", "hash is not a string")
+    assert(#hash == 16, "hash is not 16 bytes (got " .. tostring(#hash) .. ")")
+    assert(type(data) == "string", "data is not a string")
+    return "fully supported"
+end)
+
+register("getproperties", {}, function()
+    assert(getproperties ~= nil, "getproperties is nil")
+    assert(type(getproperties) == "function", "getproperties is not a function")
+    local props = getproperties(workspace)
+    assert(type(props) == "table", "did not return a table")
+    assert(props.Name == "Workspace", "Name property is incorrect (got " .. tostring(props.Name) .. ")")
+    return "fully supported"
+end)
+
+register("isnetworkowner", {}, function()
+    assert(isnetworkowner ~= nil, "isnetworkowner is nil")
+    assert(type(isnetworkowner) == "function", "isnetworkowner is not a function")
+    local part = Instance.new("Part")
+    local result = isnetworkowner(part)
+    assert(type(result) == "boolean", "did not return a boolean (got " .. type(result) .. ")")
+    part:Destroy()
+    return "fully supported"
+end)
+
+register("setsimulationradius", {}, function()
+    assert(setsimulationradius ~= nil, "setsimulationradius is nil")
+    assert(type(setsimulationradius) == "function", "setsimulationradius is not a function")
+    local ok = pcall(setsimulationradius, 999)
+    assert(ok, "setsimulationradius threw an error when called")
+    return "fully supported"
+end)
+
+register("getrendersteppedlist", {}, function()
+    assert(getrendersteppedlist ~= nil, "getrendersteppedlist is nil")
+    assert(type(getrendersteppedlist) == "function", "getrendersteppedlist is not a function")
+    local list = getrendersteppedlist()
+    assert(type(list) == "table", "did not return a table")
+    local marker = "__zunc_renderstep_probe"
+    RunService:BindToRenderStep(marker, 1, function() end)
+    task.wait()
+    local found = false
+    for _, entry in ipairs(getrendersteppedlist()) do
+        if entry.Name == marker then
+            found = true
+            assert(type(entry.Function) == "function", "entry.Function is not a function")
+            assert(type(entry.Thread) == "thread", "entry.Thread is not a thread")
+            assert(type(entry.Priority) == "number", "entry.Priority is not a number")
+            assert(entry.Priority == 1, "entry.Priority is not 1")
+            break
+        end
+    end
+    RunService:UnbindFromRenderStep(marker)
+    assert(found, "did not find the registered callback")
+    return "fully supported"
+end)
+
+register("DrawingImmediate", {}, function()
+    assert(DrawingImmediate ~= nil, "DrawingImmediate is nil")
+    assert(type(DrawingImmediate) == "table", "DrawingImmediate is not a table")
+    assert(type(DrawingImmediate.GetPaint) == "function", "DrawingImmediate.GetPaint is not a function")
+    return "fully supported"
+end)
+
+register("DrawingImmediate.GetPaint", {}, function()
+    assert(DrawingImmediate ~= nil, "DrawingImmediate is nil")
+    assert(type(DrawingImmediate.GetPaint) == "function", "DrawingImmediate.GetPaint is not a function")
+    local signal = DrawingImmediate.GetPaint(1)
+    assert(signal ~= nil, "GetPaint returned nil")
+    assert(type(signal) == "table" or type(signal) == "userdata", "did not return a signal object")
+    assert(type(signal.Connect) == "function", "signal.Connect is not a function")
+    return "fully supported"
+end)
+
+register("filtergc", {}, function()
+    assert(filtergc ~= nil, "filtergc is nil")
+    assert(type(filtergc) == "function", "filtergc is not a function")
+    local function exampleFunction()
+        return "Hello, world!"
+    end
+    local filterOptions = {
+        IgnoreExecutor = false,
+        Name = "exampleFunction",
+    }
+    local result = filtergc("function", filterOptions, true)
+    assert(type(result) == "function", "did not return a function")
+    assert(result == exampleFunction, "returned the wrong function")
+    local myTable = { ["myKey"] = 123456 }
+    local tableResult = filtergc("table", { Keys = { "myKey" } }, true)
+    assert(type(tableResult) == "table", "did not return a table")
+    assert(tableResult == myTable or tableResult.myKey == 123456, "returned the wrong table")
+    return "fully supported"
+end)
+
+register("isourthread", {}, function()
+    assert(isourthread ~= nil, "isourthread is nil")
+    assert(type(isourthread) == "function", "isourthread is not a function")
+    local current = coroutine.running()
+    local result = isourthread(current)
+    assert(type(result) == "boolean", "did not return a boolean (got " .. type(result) .. ")")
     return "fully supported"
 end)
 
